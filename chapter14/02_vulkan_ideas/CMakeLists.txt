@@ -27,6 +27,9 @@ if(CCACHE_FOUND)
   set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 endif(CCACHE_FOUND)
 
+# Share FetchContent downloads across all chapters (single repository cache)
+set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/../../.deps/fetchcontent" CACHE PATH "" FORCE)
+
 include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
 
@@ -146,7 +149,7 @@ if(WIN32 AND NOT MINGW)
   FetchContent_Declare(
     yaml-cpp
     GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
-    GIT_TAG 0.8.0
+    GIT_TAG yaml-cpp-0.9.0
     GIT_SHALLOW 1
   )
 

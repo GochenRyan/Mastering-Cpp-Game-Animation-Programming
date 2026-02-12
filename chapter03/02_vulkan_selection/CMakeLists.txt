@@ -22,6 +22,9 @@ if(CCACHE_FOUND)
   set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 endif(CCACHE_FOUND)
 
+# Share FetchContent downloads across all chapters (single repository cache)
+set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/../../.deps/fetchcontent" CACHE PATH "" FORCE)
+
 include(FetchContent)
 set(FETCHCONTENT_QUIET OFF)
 
