@@ -69,5 +69,5 @@ Testing/
 .cache/
 
 bin/
-
 .deps/
+*.spv
