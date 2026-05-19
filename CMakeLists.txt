@@ -1,6 +1,6 @@
-# # CMakeLists.txt to build a single example from the repository root.
+# # CMakeLists.txt to build examples from the repository root.
 # #
-# # Uncomment exactly one SELECTED_SAMPLE line below to choose the sample to build.
+# # Add one or more entries to SELECTED_SAMPLES below to choose the samples to build.
 # # If you want to build a sample directly, you can still use the CMakeLists.txt inside
 # # that sample directory.
 
@@ -13,6 +13,29 @@ project(Mastering-Cpp-Game-Animations)
 
 include(ExternalProject)
 include(CMakeParseArguments)
+
+function(add_sample_sources_to_ide sample_target sample_source_dir)
+  file(GLOB_RECURSE sample_ide_sources CONFIGURE_DEPENDS
+    "${sample_source_dir}/CMakeLists.txt"
+    "${sample_source_dir}/*.c"
+    "${sample_source_dir}/*.cc"
+    "${sample_source_dir}/*.cpp"
+    "${sample_source_dir}/*.cxx"
+    "${sample_source_dir}/*.h"
+    "${sample_source_dir}/*.hh"
+    "${sample_source_dir}/*.hpp"
+    "${sample_source_dir}/*.hxx"
+    "${sample_source_dir}/*.cmake"
+    "${sample_source_dir}/*.frag"
+    "${sample_source_dir}/*.vert"
+    "${sample_source_dir}/*.glsl"
+  )
+
+  if(sample_ide_sources)
+    source_group(TREE "${sample_source_dir}" FILES ${sample_ide_sources})
+    set_property(TARGET ${sample_target} APPEND PROPERTY SOURCES ${sample_ide_sources})
+  endif()
+endfunction()
 
 function(build_selected_sample sample_rel_dir)
   set(options WITH_CONFIG WITH_CONTROLS WITH_SDL2 REQUIRES_VULKAN)
@@ -74,6 +97,8 @@ function(build_selected_sample sample_rel_dir)
     USES_TERMINAL_BUILD true
   )
 
+  add_sample_sources_to_ide(${sample_target} "${sample_source_dir}")
+
   if(CMAKE_GENERATOR MATCHES "Visual Studio")
     set_target_properties(${sample_target} PROPERTIES
       VS_DEBUGGER_COMMAND "${sample_binary_dir}/$<CONFIG>/Main${CMAKE_EXECUTABLE_SUFFIX}"
@@ -124,38 +149,54 @@ function(configure_sample_from_path sample_rel_dir)
   build_selected_sample("${sample_rel_dir}" ${sample_options})
 endfunction()
 
-# Uncomment exactly one line to choose which sample the root build should compile.
-# set(SELECTED_SAMPLE "chapter01/01_opengl_assimp")
-set(SELECTED_SAMPLE "chapter01/02_vulkan_assimp")
+# Add one or more entries to choose which samples the root build should compile.
+# This can also be set from the command line, for example:
+# cmake -S . -B build -DSELECTED_SAMPLES="chapter01/01_opengl_assimp;chapter01/02_vulkan_assimp"
+if(NOT DEFINED SELECTED_SAMPLES)
+  set(SELECTED_SAMPLES
+    # "chapter01/01_opengl_assimp"
+    "chapter01/02_vulkan_assimp"
 
-# set(SELECTED_SAMPLE "chapter02/01_opengl_computeshader")
-# set(SELECTED_SAMPLE "chapter02/02_vulkan_computeshader")
-# set(SELECTED_SAMPLE "chapter03/01_opengl_selection")
-# set(SELECTED_SAMPLE "chapter03/02_vulkan_selection")
-# set(SELECTED_SAMPLE "chapter04/01_opengl_edit_view_mode")
-# set(SELECTED_SAMPLE "chapter04/02_vulkan_edit_view_mode")
-# set(SELECTED_SAMPLE "chapter05/01_opengl_load_save")
-# set(SELECTED_SAMPLE "chapter05/02_vulkan_load_save")
-# set(SELECTED_SAMPLE "chapter06/01_opengl_cameras")
-# set(SELECTED_SAMPLE "chapter06/02_vulkan_cameras")
-# set(SELECTED_SAMPLE "chapter07/01_opengl_animations")
-# set(SELECTED_SAMPLE "chapter07/02_vulkan_animations")
-# set(SELECTED_SAMPLE "chapter08/01_opengl_collisions")
-# set(SELECTED_SAMPLE "chapter08/02_vulkan_collisions")
-# set(SELECTED_SAMPLE "chapter09/01_opengl_behavior")
-# set(SELECTED_SAMPLE "chapter09/02_vulkan_behavior")
-# set(SELECTED_SAMPLE "chapter10/01_opengl_morphanim")
-# set(SELECTED_SAMPLE "chapter10/02_vulkan_morphanim")
-# set(SELECTED_SAMPLE "chapter11/01_opengl_level")
-# set(SELECTED_SAMPLE "chapter11/02_vulkan_level")
-# set(SELECTED_SAMPLE "chapter12/01_opengl_adv_collision")
-# set(SELECTED_SAMPLE "chapter12/02_vulkan_adv_collision")
-# set(SELECTED_SAMPLE "chapter13/01_opengl_navigation")
-# set(SELECTED_SAMPLE "chapter13/02_vulkan_navigation")
-# set(SELECTED_SAMPLE "chapter14/01_opengl_ideas")
-# set(SELECTED_SAMPLE "chapter14/02_vulkan_ideas")
-if(NOT DEFINED SELECTED_SAMPLE OR SELECTED_SAMPLE STREQUAL "")
-  message(FATAL_ERROR "No sample selected. Uncomment one SELECTED_SAMPLE line in the root CMakeLists.txt.")
+    # "chapter02/01_opengl_computeshader"
+    # "chapter02/02_vulkan_computeshader"
+    # "chapter03/01_opengl_selection"
+    # "chapter03/02_vulkan_selection"
+    # "chapter04/01_opengl_edit_view_mode"
+    # "chapter04/02_vulkan_edit_view_mode"
+    # "chapter05/01_opengl_load_save"
+    # "chapter05/02_vulkan_load_save"
+    # "chapter06/01_opengl_cameras"
+    # "chapter06/02_vulkan_cameras"
+    # "chapter07/01_opengl_animations"
+    # "chapter07/02_vulkan_animations"
+    # "chapter08/01_opengl_collisions"
+    # "chapter08/02_vulkan_collisions"
+    # "chapter09/01_opengl_behavior"
+    # "chapter09/02_vulkan_behavior"
+    # "chapter10/01_opengl_morphanim"
+    # "chapter10/02_vulkan_morphanim"
+    # "chapter11/01_opengl_level"
+    # "chapter11/02_vulkan_level"
+    # "chapter12/01_opengl_adv_collision"
+    # "chapter12/02_vulkan_adv_collision"
+    # "chapter13/01_opengl_navigation"
+    # "chapter13/02_vulkan_navigation"
+    # "chapter14/01_opengl_ideas"
+    # "chapter14/02_vulkan_ideas"
+  )
 endif()
 
-configure_sample_from_path("${SELECTED_SAMPLE}")
+# Backward compatibility for older command lines or local edits that still set SELECTED_SAMPLE.
+if(DEFINED SELECTED_SAMPLE AND NOT SELECTED_SAMPLE STREQUAL "")
+  list(APPEND SELECTED_SAMPLES ${SELECTED_SAMPLE})
+endif()
+
+if(NOT SELECTED_SAMPLES)
+  message(FATAL_ERROR "No sample selected. Add at least one entry to SELECTED_SAMPLES in the root CMakeLists.txt.")
+endif()
+
+list(REMOVE_DUPLICATES SELECTED_SAMPLES)
+
+foreach(selected_sample IN LISTS SELECTED_SAMPLES)
+  configure_sample_from_path("${selected_sample}")
+endforeach()
